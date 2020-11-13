@@ -23,8 +23,8 @@
     <bool name="configShowDeviceSensitiveInfo">false</bool>
 
     <!-- FOD recognizing animation -->
-    <bool name="config_showFODAnimationSettings">false</bool>
+    <bool name="config_showFODAnimationSettings">true</bool>
 
     <!-- Screen off FOD -->
-    <bool name="config_supportScreenOffFod">false</bool>
+    <bool name="config_supportScreenOffFod">true</bool>
 </resources>

@@ -16,37 +16,54 @@
 
 package com.android.settings.security.screenlock;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.hardware.fingerprint.FingerprintManager;
+import android.provider.Settings;
+import android.text.TextUtils;
 
-import com.android.internal.util.evolution.fod.FodUtils;
+import androidx.preference.Preference;
+import androidx.preference.SwitchPreference;
+import androidx.preference.TwoStatePreference;
+
+import com.android.internal.widget.LockPatternUtils;
 import com.android.settings.R;
-import com.android.settings.Utils;
-import com.android.settings.core.BasePreferenceController;
+import com.android.settings.core.PreferenceControllerMixin;
+import com.android.settings.overlay.FeatureFactory;
+import com.android.settings.security.trustagent.TrustAgentManager;
+import com.android.settingslib.core.AbstractPreferenceController;
 
-public class ScreenOffFodPreferenceController extends BasePreferenceController {
+public class ScreenOffFodPreferenceController extends AbstractPreferenceController
+        implements PreferenceControllerMixin, Preference.OnPreferenceChangeListener {
+
     private static final String KEY_FOD_GESTURE = "fod_gesture";
-    private Context mContext;
-
-    private FingerprintManager fpm;
-    private PackageManager packageManager;
 
     public ScreenOffFodPreferenceController(Context context) {
-        super(context, KEY_FOD_GESTURE);
-        mContext = context;
-
-        fpm = Utils.getFingerprintManagerOrNull(context);
-        packageManager = context.getPackageManager();
+        super(context);
     }
 
     @Override
-    public int getAvailabilityStatus() {
-        if (fpm != null && fpm.isHardwareDetected() && fpm.hasEnrolledFingerprints()
-                && FodUtils.hasFodSupport(mContext)
-                && mContext.getResources().getBoolean(R.bool.config_supportScreenOffFod)) {
-            return AVAILABLE;
-        }
-        return UNSUPPORTED_ON_DEVICE;
+    public boolean isAvailable() {
+        return mContext.getResources().getBoolean(
+                R.bool.config_supportScreenOffFod);
+    }
+
+    @Override
+    public void updateState(Preference preference) {
+        int value = Settings.System.getInt(
+                mContext.getContentResolver(), Settings.System.FOD_GESTURE, 0);
+        ((SwitchPreference) preference).setChecked(value != 0);
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        boolean value = (Boolean) newValue;
+        Settings.System.putInt(
+                mContext.getContentResolver(), Settings.System.FOD_GESTURE, value ? 1 : 0);
+        return true;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+        return KEY_FOD_GESTURE;
     }
 }
